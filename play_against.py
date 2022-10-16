@@ -1,5 +1,6 @@
-import cv2
+from cv2 import waitKey
 from SnakeGame import Snake
+from newSnakeGame import Snake as new_snake, Actions
 from render import GetNewestModel
 
 
@@ -9,20 +10,24 @@ def PlayervsAI(player1, player2, model):
 
     player1.reset()
     obs2 = player2.reset()
+
+    player1.render()
+    player2.render()
     while True:
 
         if not player1_done:
-            action = cv2.waitKey(0)
 
-            if action == ord('a'):
-                obs1, rewards1, dones1, info1 = player1.step(0)
-            elif action == ord('d'):
-                obs1, rewards1, dones1, info1= player1.step(1)
-            elif action == ord('w'):
-                obs1, rewards1, dones1, info1 = player1.step(2)
-            else:
-                obs1, rewards1, dones1, info1 = player1.step(3)
+            key_press = waitKey(0)
+            if key_press == ord('a'):
+                action = Actions.LEFT
+            elif key_press == ord('d'):
+                action = Actions.RIGHT
+            elif key_press == ord('w'):
+                action = Actions.UP
+            elif key_press == ord('s'):
+                action = Actions.DOWN
 
+            obs1, rewards1, dones1, info1 = player1.step(action)
             player1.render(renderer=100)
             if dones1:
                 print('You are DONE')
@@ -48,6 +53,8 @@ def AIvsAI(player1, player2, model1, model2):
     obs1 = player1.reset()
     obs2 = player2.reset()
 
+    player1.render()
+    player2.render()
     while True:
 
         if not player1_done:
@@ -85,6 +92,8 @@ def WhoisBetter(player1, player2, model1, model2, total_games):
         obs1 = player1.reset()
         obs2 = player2.reset()
 
+        player1.render()
+        player2.render()
         while True:
             if not player1_done:
                 # making the ai play the game 
@@ -107,24 +116,24 @@ def WhoisBetter(player1, player2, model1, model2, total_games):
 
 
             # if both players finish at the same time
-            if player1_done and player2_done:
-                # num_games += 1
-                # player1_num_wins += 1
-                # player2_num_wins += 1
+            if info1['won'] and info2['won']:
                 break
 
             # if player 1 finishes first, award the win
-            elif player1_done:
+            elif info1['won']:
                 num_games += 1
                 player1_num_wins += 1
                 break
 
             # if player 2 finished first, award the win
-            elif player2_done:
+            elif info2['won']:
                 num_games += 1
                 player2_num_wins += 1
                 break
-
+            
+            # if either die and they havent won, restart the test ( trying to figure out who has the faster completion; dont care about deaths)
+            elif player1_done or player2_done:
+                break
 
     # win percentage calculation
     print(f'player 1 {player1.timestep} win percentage: {player1_num_wins / num_games * 100:.2f} %')
@@ -135,34 +144,42 @@ if __name__ == '__main__':
 
     # recent_timestep =  1662781705 
     # recent_timestep = 1662936567 # size 4
+    # # recent_timestep = 1663013938
     # recent_timestep = 1662864800 
-    recent_timestep = 1663013938
+    recent_timestep = 1665814474 
 
-    player1 = Snake(size=6, player=True, time_between_moves=1)
-    player2 = Snake(size=6, player=False, time_between_moves=100, timestep=recent_timestep)
+    player1 = new_snake(size=6, player=True, time_between_moves=1)
+    player2 = new_snake(size=6, player=False, time_between_moves=100, timestep=recent_timestep)
 
     model = GetNewestModel(env=player2, recent_timestep=recent_timestep)
+    # model = GetNewestModel(env=player2, recent_timestep=recent_timestep, recent_file=78165000)
     PlayervsAI(player1, player2, model)
 
 
 
-    # recent_timestep1 =  1662781705 
-    # recent_timestep2 = 1662864800 
+    # # recent_timestep1 = 1662781705 
+    # recent_timestep1 = 1663013938
+    # # recent_timestep1 =  1662919438 
+    # # recent_timestep1 = 1665814474
+    
+    # # recent_timestep2 = 1662864800 
+    # recent_timestep2 = 1665814474
+    # # recent_timestep2 = 1662781705
 
     # player1 = Snake(size=6, player=False, time_between_moves=100, timestep=recent_timestep1)
-    # player2 = Snake(size=6, player=False, time_between_moves=100, timestep=recent_timestep2)
+    # player2 = new_snake(size=6, player=False, time_between_moves=100, timestep=recent_timestep2)
 
     # model1 = GetNewestModel(env=player1, recent_timestep=recent_timestep1)
-    # model2 = GetNewestModel(env=player2, recent_timestep=recent_timestep2)
+    # model2 = GetNewestModel(env=player2, recent_timestep=recent_timestep2, recent_file=78165000)
 
-    # AIvsAI(player1, player2, model1, model2)
-
+    # # AIvsAI(player1, player2, model1, model2)
+    # WhoisBetter(player1, player2, model1, model2, 100)
 
 
 
     # recent_timestep1 =  1662781705 
     # recent_timestep1 =  1662919438 
-    # recent_timestep1 =  1663013938 
+    # # recent_timestep1 =  1663013938 
 
     # recent_timestep2 = 1662864800 # best one so far
 

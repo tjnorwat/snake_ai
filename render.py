@@ -1,11 +1,13 @@
 import os
 import time
 import argparse
-from SnakeGame import Snake
+# from SnakeGame import Snake
+from newSnakeGame import Snake
+# from improvedSnakeGame import Snake
 from stable_baselines3 import PPO
 
 
-def GetNewestModel(env, recent_timestep=0):
+def GetNewestModel(env, recent_timestep=0, recent_file=0):
 
     if not recent_timestep:
         for f in os.scandir('models'):
@@ -21,12 +23,11 @@ def GetNewestModel(env, recent_timestep=0):
     print('timestep', recent_timestep)
     models_dir = f'models/{recent_timestep}'
 
-    recent_file = 0
-    for f in os.scandir(models_dir):
-        f = int(os.path.splitext(f.name)[0])
-        if recent_file < f:
-            recent_file = f
-
+    if not recent_file:
+        for f in os.scandir(models_dir):
+            f = int(os.path.splitext(f.name)[0])
+            if recent_file < f:
+                recent_file = f
 
     print(f'zip file {recent_file}')
     model_path = f'{models_dir}/{recent_file}'
@@ -51,7 +52,7 @@ if __name__ == '__main__':
         action, _states = model.predict(obs, deterministic=True)
         obs, rewards, dones, info = env.step(action)
         # print(rewards)
-        env.render(renderer=30)
+        env.render(renderer=100)
         if dones:
             i += 1
             if i % 5 == 0: 

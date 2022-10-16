@@ -1,7 +1,9 @@
 import os
 import time
 import argparse
-from SnakeGame import Snake
+# from SnakeGame import Snake
+from newSnakeGame import Snake
+# from improvedSnakeGame import Snake
 from stable_baselines3 import PPO
 from stable_baselines3.common.vec_env import DummyVecEnv
 
@@ -56,7 +58,7 @@ if __name__ == '__main__':
 	batch_size=256
 	)
 
-	TIMESTEPS = 150_000
+	TIMESTEPS = 15_000
 	iters = 0
 	while True:
 		iters += 1

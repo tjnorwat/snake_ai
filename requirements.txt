@@ -1,0 +1,7 @@
+stable-baselines3[extra]
+numpy
+torch
+torchvision
+torchaudio
+gym
+opencv-python
