@@ -1,6 +1,7 @@
 from cv2 import waitKey
 # from SnakeGame import Snake
-from newSnakeGame import Snake, Actions
+# from newSnakeGame import Snake, Actions
+from gameSnake import Snake, Actions
 # from improvedSnakeGame import Snake, Actions
 
 player = Snake(size=6, player=True, time_between_moves=1)
@@ -21,7 +22,8 @@ while True:
     obs, rewards, dones, info = player.step(action)
     player.render(renderer=100)
     
-    print('obs len', len(obs))
-    print('rewards ', rewards)
+    # print('obs len', len(obs))
+    # print('rewards ', rewards)
+    
     if dones:
         break

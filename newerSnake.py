@@ -1,6 +1,5 @@
 import cv2
 import random
-from cv2 import threshold
 import numpy as np
 from gym import spaces, Env
 from collections import deque
@@ -13,11 +12,10 @@ class Actions():
 
 
 class Snake(Env):
-    def __init__(self, size=6, player=False, time_between_moves=100, timestep=None, threshold=-1):
+    def __init__(self, size=6, player=False, time_between_moves=100, timestep=None):
 
         super(Snake, self).__init__()
 
-        self.apple_state_threshold = threshold
         self.size = size
         self.player = player
         self.time_between_moves = time_between_moves
@@ -26,12 +24,12 @@ class Snake(Env):
 
         self.whole_coord = np.mgrid[0:size, 0:size].reshape(2, -1).T.tolist()
         self.action_space = spaces.Discrete(4)
-        # snake head x y, snake tail position x y, apple position (x, y), distance to apple (dx, dy), number of moves taken, snake length, distance to tail (dx, dy), num open squares left/right/up/down
-        extra_obs_num = 16
+        # apple position (x, y), distance to apple (dx, dy), number of moves taken, snake length, distance to tail (dx, dy), num open squares left/right/up/down
+        extra_obs_num = 12
         # max coordinate pairs of snake 
-        # shape_size = size ** 2 * 2
+        shape_size = size ** 2 * 2
         # previous action length
-        shape_size = size ** 2
+        shape_size += size ** 2
         # adding extra obs 
         shape_size += extra_obs_num
         # 'high' parameter large size comes from max number which would be number of moves taken
@@ -40,47 +38,6 @@ class Snake(Env):
 
     def _GetApplePosition(self):
         # making sure that the new apple doesnt spawn in the snake
-
-        if self.apple_state_threshold > random.random():
-            head = self.snake_positions[0]
-            # check to make sure we are in bounds and we are not in the snake 
-            left_choice = head[0] - 1
-            right_choice = head[0] + 1
-            up_choice = head[1] - 1
-            down_choice = head[1] + 1
-
-            choices = list()
-
-            if left_choice >= 0:
-                temp = [left_choice, head[1]]
-                if temp not in self.snake_positions:
-                    choices.append(temp)
-
-            if right_choice < self.size:
-                temp = [right_choice, head[1]]
-                if temp not in self.snake_positions:
-                    choices.append(temp)
-
-            if up_choice >= 0:
-                temp = [head[0], up_choice]
-                if temp not in self.snake_positions:
-                    choices.append(temp)
-            
-            if down_choice < self.size:
-                temp = [head[0], down_choice]
-                if temp not in self.snake_positions:
-                    choices.append(temp)
-
-            # sometimes we dont have space available for the apple, so we need to get a random position
-            if len(choices) != 0:
-                # have a 10% chance min to have an apple spawn next to snake
-                if self.apple_state_threshold > .1:
-                    # 70 million times ? 
-                    # should change to whole game instead of per instance of eating apple 
-                    self.apple_state_threshold -= .0000001
-                self.apple_position = random.choice(choices)
-                return
-
         choices = [choice for choice in self.whole_coord if choice not in self.snake_positions]
         self.apple_position = random.choice(choices)
 
@@ -94,15 +51,14 @@ class Snake(Env):
             distance_to_tail_y = 0
             # snake head 
             obs = np.array(self.snake_positions[0]).flatten()
-            # extra_zeros = [0 for _ in range(self.size ** 2 - len(self.snake_positions) - 1)] * 2
+            extra_zeros = [0 for _ in range(self.size ** 2 - len(self.snake_positions) - 1)] * 2
         else:
             snake_tail = self.snake_positions[-1]
             # distance_to_tail = round(np.linalg.norm(np.array(self.snake_positions[0]) - np.array(self.snake_positions[-1])), 2)
             distance_to_tail_x = self.snake_positions[0][0] - self.snake_positions[-1][0]
             distance_to_tail_y = self.snake_positions[0][1] - self.snake_positions[-1][1]
-            # obs = np.array(self.snake_positions[:-1]).flatten()
-            obs = np.array(self.snake_positions[0]).flatten()
-            # extra_zeros = [0 for _ in range(self.size ** 2 - len(self.snake_positions))] * 2
+            obs = np.array(self.snake_positions[:-1]).flatten()
+            extra_zeros = [0 for _ in range(self.size ** 2 - len(self.snake_positions))] * 2
 
         # distance_to_apple = round(np.linalg.norm(np.array(self.snake_positions[0]) - np.array(self.apple_position)), 2)
         distance_to_apple_x = self.snake_positions[0][0] - self.apple_position[0]
@@ -121,7 +77,6 @@ class Snake(Env):
                 break
             open_squares_left += 1
             left_counter -= 1
-            break
         
         
         open_squares_right = 0
@@ -133,7 +88,6 @@ class Snake(Env):
                 break
             open_squares_right += 1
             right_counter += 1
-            break
         
         # print('open squares left ', open_squares_left)
         # print('open squares right ', open_squares_right)
@@ -147,7 +101,6 @@ class Snake(Env):
                 break
             open_squares_up += 1
             up_counter -= 1
-            break
         
         open_squares_down = 0
 
@@ -157,12 +110,11 @@ class Snake(Env):
                 break
             open_squares_down += 1
             down_counter += 1
-            break
 
         # print('open squares up ', open_squares_up)
         # print('open squares down ', open_squares_down)
 
-        # obs = np.append(obs, extra_zeros)
+        obs = np.append(obs, extra_zeros)
         obs = np.append(obs, [
             snake_tail[0],
             snake_tail[1],
@@ -240,14 +192,14 @@ class Snake(Env):
 
             # we completed the game 
             if len(self.snake_positions) == self.size ** 2:
-                reward = 2
+                reward = 5
 
                 self.done = True
                 info['won'] = True
             # we ate an apple 
             else:
                 self._GetApplePosition()
-                reward = (1 - (self.moves_to_get_apple / (self.size ** 2 - 1)))
+                reward = .5 + (1 - (self.moves_to_get_apple / self.size ** 2) ) * .2
             
             # resetting the previous distance to new position of apple
             self.prev_distance = np.linalg.norm(np.array(snake_head) - np.array(self.apple_position))

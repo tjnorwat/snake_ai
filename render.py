@@ -2,8 +2,9 @@ import os
 import time
 import argparse
 # from SnakeGame import Snake
-from newSnakeGame import Snake
+# from newSnakeGame import Snake
 # from improvedSnakeGame import Snake
+from gameSnake import Snake
 from stable_baselines3 import PPO
 
 

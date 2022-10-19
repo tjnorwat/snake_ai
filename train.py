@@ -2,8 +2,9 @@ import os
 import time
 import argparse
 # from SnakeGame import Snake
-from newSnakeGame import Snake
+# from newSnakeGame import Snake
 # from improvedSnakeGame import Snake
+from gameSnake import Snake
 from stable_baselines3 import PPO
 from stable_baselines3.common.vec_env import DummyVecEnv
 
@@ -55,7 +56,7 @@ if __name__ == '__main__':
 	verbose=1, 
 	tensorboard_log=logdir, 
 	device='cpu',
-	batch_size=256
+	batch_size=512
 	)
 
 	TIMESTEPS = 15_000

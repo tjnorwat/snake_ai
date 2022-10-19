@@ -1,6 +1,5 @@
 import cv2
 import random
-from cv2 import threshold
 import numpy as np
 from gym import spaces, Env
 from collections import deque
@@ -16,17 +15,35 @@ class Snake(Env):
     def __init__(self, size=6, player=False, time_between_moves=100, timestep=None, threshold=-1):
 
         super(Snake, self).__init__()
+        
+        # left/right/up
+        # dont need down, using it just for player
+        self.direction_arr = [
+            [1, -1, -1, 1],
+            [-1, 1, 1, -1],
+            [-1, 1, -1, 1],
+            [1, -1, 1, -1]
+        ]
 
+        # x = 0, y = 1
+        self.axis_arr = [
+            [1, 1, 0, 0],
+            [1, 1, 0, 0],
+            [0, 0, 1, 1],
+            [0, 0, 1, 1]
+        ]
+
+        
         self.apple_state_threshold = threshold
         self.size = size
         self.player = player
         self.time_between_moves = time_between_moves
         self.timestep = timestep
         self.max_distance = np.linalg.norm(np.array([0,0]) - np.array([size-1, size-1]))
-
         self.whole_coord = np.mgrid[0:size, 0:size].reshape(2, -1).T.tolist()
-        self.action_space = spaces.Discrete(4)
-        # snake head x y, snake tail position x y, apple position (x, y), distance to apple (dx, dy), number of moves taken, snake length, distance to tail (dx, dy), num open squares left/right/up/down
+        # only need left/right/up because of local direction 
+        self.action_space = spaces.Discrete(3)
+        # snake head x y, snake tail position x y, apple position (x, y), distance to apple (dx, dy), number of moves taken, snake length, distance to tail (dx, dy), is square open left/right/up, direction
         extra_obs_num = 16
         # max coordinate pairs of snake 
         # shape_size = size ** 2 * 2
@@ -92,78 +109,44 @@ class Snake(Env):
             snake_tail = self.snake_positions[0]
             distance_to_tail_x = 0
             distance_to_tail_y = 0
-            # snake head 
-            obs = np.array(self.snake_positions[0]).flatten()
-            # extra_zeros = [0 for _ in range(self.size ** 2 - len(self.snake_positions) - 1)] * 2
         else:
             snake_tail = self.snake_positions[-1]
             # distance_to_tail = round(np.linalg.norm(np.array(self.snake_positions[0]) - np.array(self.snake_positions[-1])), 2)
-            distance_to_tail_x = self.snake_positions[0][0] - self.snake_positions[-1][0]
-            distance_to_tail_y = self.snake_positions[0][1] - self.snake_positions[-1][1]
-            # obs = np.array(self.snake_positions[:-1]).flatten()
-            obs = np.array(self.snake_positions[0]).flatten()
-            # extra_zeros = [0 for _ in range(self.size ** 2 - len(self.snake_positions))] * 2
+            distance_to_tail_x = self.snake_positions[-1][0] - self.snake_positions[0][0]
+            distance_to_tail_y = self.snake_positions[-1][1] - self.snake_positions[0][1]
 
         # distance_to_apple = round(np.linalg.norm(np.array(self.snake_positions[0]) - np.array(self.apple_position)), 2)
-        distance_to_apple_x = self.snake_positions[0][0] - self.apple_position[0]
-        distance_to_apple_y = self.snake_positions[0][1] - self.apple_position[1]
-        
-        # col and row switched :pensive:
-        # excluding the apple and tail
+        distance_to_apple_x = self.apple_position[0] - self.snake_positions[0][0]
+        distance_to_apple_y = self.apple_position[1] - self.snake_positions[0][1]
 
-        open_squares_left = 0
-        left_counter = right_counter = self.snake_positions[0][0]
 
-        while left_counter > 0:
-            # keep counting until we hit the edge or our body; we can count the tail because the tail moves O_O
-            temp = [left_counter - 1, self.snake_positions[0][1]]
-            if temp in self.snake_positions and temp != snake_tail:
-                break
-            open_squares_left += 1
-            left_counter -= 1
-            break
-        
-        
-        open_squares_right = 0
+        # make sure that we are in bounds of the game
+        # make sure that we dont count another part of the snake
+            # if the part of the snake is the tail, we count it 
+        # if the square is the apple, we count it  
 
-        while right_counter < self.size - 1:
-            temp = [right_counter + 1, self.snake_positions[0][1]]
+        # is left/right/up square open ?
+        # down will always be not available since its local direction
+        open_squares = [0, 0, 0]
+        snake_head = [ self.snake_positions[0][0], self.snake_positions[0][1] ]
 
-            if temp in self.snake_positions and temp != snake_tail:
-                break
-            open_squares_right += 1
-            right_counter += 1
-            break
-        
-        # print('open squares left ', open_squares_left)
-        # print('open squares right ', open_squares_right)
+        for i in range(3):
+            
+            val = self.direction_arr[i][self.direction]
+            which_axis = self.axis_arr[i][self.direction]
 
-        open_squares_up = 0
-        up_counter = down_counter = self.snake_positions[0][1]
+            if which_axis == 0:
+                # if we are in bounds
+                if snake_head[0] + val >= 0 and snake_head[0] + val < self.size:
+                    # check if the head is against another snake part but not the tail
+                    if [ snake_head[0] + val, snake_head[1] ] not in self.snake_positions[:-1]:
+                        open_squares[i] = 1
+            else:
+                if snake_head[1] + val >= 0 and snake_head[1] + val < self.size:
+                    if [ snake_head[0], snake_head[1] + val ] not in self.snake_positions[:-1]:
+                        open_squares[i] = 1
 
-        while up_counter > 0:
-            temp = [self.snake_positions[0][0], up_counter - 1]
-            if temp in self.snake_positions and temp!= snake_tail:
-                break
-            open_squares_up += 1
-            up_counter -= 1
-            break
-        
-        open_squares_down = 0
-
-        while down_counter < self.size - 1:
-            temp = [self.snake_positions[0][0], down_counter + 1]
-            if temp in self.snake_positions and temp!= snake_tail:
-                break
-            open_squares_down += 1
-            down_counter += 1
-            break
-
-        # print('open squares up ', open_squares_up)
-        # print('open squares down ', open_squares_down)
-
-        # obs = np.append(obs, extra_zeros)
-        obs = np.append(obs, [
+        obs = snake_head + [
             snake_tail[0],
             snake_tail[1],
             self.apple_position[0],
@@ -174,19 +157,14 @@ class Snake(Env):
             distance_to_apple_y,
             distance_to_tail_x,
             distance_to_tail_y,
-            open_squares_left,
-            open_squares_right,
-            open_squares_up,
-            open_squares_down
-            ]
-        )
-
-        obs = np.append(obs, list(self.prev_actions))
-
+            self.direction
+            ] \
+                + open_squares \
+                + list(self.prev_actions)
+        
         # print(obs)
-        # print('LENGTH', len(obs))
 
-        return obs
+        return np.array(obs)
 
 
     def _GetRenderImg(self, renderer=100):
@@ -215,39 +193,64 @@ class Snake(Env):
             'won' : False
         }
 
-        snake_head = np.copy(self.snake_positions[0])
+        # snake_head = np.copy(self.snake_positions[0])
+        snake_head = [ self.snake_positions[0][0], self.snake_positions[0][1] ]
         self.prev_actions.append(action)
 
-        # left, right, up, down
-        if action == Actions.LEFT:
-            snake_head[0] -= 1
-        elif action == Actions.RIGHT:
-            snake_head[0] += 1
-        elif action == Actions.UP:
-            snake_head[1] -= 1
-        elif action == Actions.DOWN:
-            snake_head[1] += 1
+        # if player is not human 
+        if not self.player:
+
+            val = self.direction_arr[action][self.direction]
+            which_axis = self.axis_arr[action][self.direction]
+
+            # get new direction
+            if val == -1 and which_axis == 0:
+                self.direction = Actions.LEFT
+            elif val == -1 and which_axis == 1:
+                self.direction = Actions.UP
+            elif val == 1 and which_axis == 0:
+                self.direction = Actions.RIGHT
+            else:
+                self.direction = Actions.DOWN
+            
+            # move the snake head
+            if which_axis == 0:
+                snake_head[0] += val
+            else:
+                snake_head[1] += val
+
+        # if player is human we switch to more intuitive controls
+        else:
+
+            # left, right, up, down
+            if action == Actions.LEFT:
+                snake_head[0] -= 1
+            elif action == Actions.RIGHT:
+                snake_head[0] += 1
+            elif action == Actions.UP:
+                snake_head[1] -= 1
+            elif action == Actions.DOWN:
+                snake_head[1] += 1
 
         self.moves_to_get_apple += 1
-        snake_head = snake_head.tolist()
         self.total_moves += 1
+        
         # increase snake length of eating the apple
         if snake_head == self.apple_position:
-            # self.prev_distance = 0
             self.score += 1
-            
             self.snake_positions.insert(0, snake_head)
 
             # we completed the game 
             if len(self.snake_positions) == self.size ** 2:
                 reward = 2
-
+                print('total_moves', self.total_moves)
                 self.done = True
                 info['won'] = True
+
             # we ate an apple 
             else:
                 self._GetApplePosition()
-                reward = (1 - (self.moves_to_get_apple / (self.size ** 2 - 1)))
+                reward = (1 - (self.moves_to_get_apple / (self.size ** 2 - 1))) * .5
             
             # resetting the previous distance to new position of apple
             self.prev_distance = np.linalg.norm(np.array(snake_head) - np.array(self.apple_position))
@@ -260,14 +263,7 @@ class Snake(Env):
             self.snake_positions.pop()
 
             curr_distance = np.linalg.norm(np.array(snake_head) - np.array(self.apple_position))
-            
-            # getting closer to the apple
-            # do i need if statemetn ?? 
-            if self.prev_distance != 0:
-                distance_reward = (1 - (curr_distance / self.max_distance) ) * .002
-                reward = distance_reward
-            else:
-                reward = 0
+            reward = (1 - (curr_distance / self.max_distance) ) * .002
 
             self.prev_distance = curr_distance
             
@@ -275,18 +271,14 @@ class Snake(Env):
         # if snakes collides with itself or the wall we die :(
         if snake_head in self.snake_positions[1:] or snake_head[0] >= self.size or snake_head[0] < 0 or snake_head[1] >= self.size or snake_head[1] < 0:
             self.done = True
-            # self.prev_distance = 0
             reward = -1
 
         # snake shouldnt loop around the apple  
         elif self.moves_to_get_apple >= self.size ** 2:
             self.done = True
-            # self.prev_distance = 0
             reward = -.5
-      
-        obs = self._GetOBS()
 
-        return obs, reward, self.done, info
+        return self._GetOBS(), reward, self.done, info
 
 
     def reset(self):
@@ -305,6 +297,9 @@ class Snake(Env):
         self.done = False
 
         self.total_moves = 0
+
+        # snake is facing up 
+        self.direction = 2
 
         obs = self._GetOBS()
 

@@ -1,6 +1,8 @@
 from cv2 import waitKey
 from SnakeGame import Snake
 from newSnakeGame import Snake as new_snake, Actions
+from newerSnake import Snake as older_snake
+from gameSnake import Snake as game_snake
 from render import GetNewestModel
 
 
@@ -92,8 +94,6 @@ def WhoisBetter(player1, player2, model1, model2, total_games):
         obs1 = player1.reset()
         obs2 = player2.reset()
 
-        player1.render()
-        player2.render()
         while True:
             if not player1_done:
                 # making the ai play the game 
@@ -144,33 +144,42 @@ if __name__ == '__main__':
 
     # recent_timestep =  1662781705 
     # recent_timestep = 1662936567 # size 4
-    # # recent_timestep = 1663013938
+    # recent_timestep = 1663013938
     # recent_timestep = 1662864800 
-    recent_timestep = 1665814474 
+    # recent_timestep = 1665814474 
+    # recent_timestep = 1665965302
+    recent_timestep = 1666166799
+    
+    player1 = game_snake(size=6, player=True, time_between_moves=1)
+    player2 = game_snake(size=6, player=False, time_between_moves=100, timestep=recent_timestep)
 
-    player1 = new_snake(size=6, player=True, time_between_moves=1)
-    player2 = new_snake(size=6, player=False, time_between_moves=100, timestep=recent_timestep)
-
-    model = GetNewestModel(env=player2, recent_timestep=recent_timestep)
+    model = GetNewestModel(env=player2, recent_timestep=recent_timestep, recent_file=90060000)
     # model = GetNewestModel(env=player2, recent_timestep=recent_timestep, recent_file=78165000)
     PlayervsAI(player1, player2, model)
 
 
 
     # # recent_timestep1 = 1662781705 
-    # recent_timestep1 = 1663013938
+    # # recent_timestep1 = 1663013938
     # # recent_timestep1 =  1662919438 
     # # recent_timestep1 = 1665814474
-    
+    # # recent_timestep1 = 1665900538
+    # # recent_timestep1 = 1665965302
+    # recent_timestep1 = 1666166799
+
+
     # # recent_timestep2 = 1662864800 
-    # recent_timestep2 = 1665814474
     # # recent_timestep2 = 1662781705
+    # recent_timestep2 = 1665814474
+    # # recent_timestep2 = 1666166799
 
-    # player1 = Snake(size=6, player=False, time_between_moves=100, timestep=recent_timestep1)
-    # player2 = new_snake(size=6, player=False, time_between_moves=100, timestep=recent_timestep2)
+    # player1 = game_snake(size=6, player=False, time_between_moves=100, timestep=recent_timestep1)
+    # player2 = older_snake(size=6, player=False, time_between_moves=100, timestep=recent_timestep2)
+    # # player2 = game_snake(size=6, player=False, time_between_moves=100, timestep=recent_timestep2)
 
-    # model1 = GetNewestModel(env=player1, recent_timestep=recent_timestep1)
+    # model1 = GetNewestModel(env=player1, recent_timestep=recent_timestep1, recent_file=90060000)
     # model2 = GetNewestModel(env=player2, recent_timestep=recent_timestep2, recent_file=78165000)
+
 
     # # AIvsAI(player1, player2, model1, model2)
     # WhoisBetter(player1, player2, model1, model2, 100)
