@@ -49,11 +49,22 @@ if __name__ == '__main__':
     obs = env.reset()
     model = GetNewestModel(env=env, recent_timestep=args.timestep)
     i = 0
+
+    if args.size == 6:
+        renderer = 100 #@ ?
+    elif args.size == 8:
+        renderer = 87
+    elif args.size == 10:
+        renderer = 70
+    else:
+        renderer = 100
+        
     while True:
         action, _states = model.predict(obs, deterministic=True)
         obs, rewards, dones, info = env.step(action)
         # print(rewards)
-        env.render(renderer=100)
+
+        env.render(renderer=renderer)
         if dones:
             i += 1
             if i % 5 == 0: 
@@ -61,6 +72,6 @@ if __name__ == '__main__':
             
             if info['won']:
                 with open('dones.txt', 'a+') as f:
-                    f.writelines(f'GAME COMPLETED AT {time.strftime("%b %d %Y %I:%M %p")} WITH SIZE {args.size}\n')
+                    f.writelines(f'GAME COMPLETED AT {time.strftime("%b %d %Y %I:%M %p")} WITH SIZE {args.size} CURR MIN MOVES {env.total_moves}\n')
 
             obs = env.reset()

@@ -29,7 +29,7 @@ def multi(size):
 	def main():
 
 		def _init():
-			env = Snake(size=size)
+			env = Snake(size=size, spawn_apple_stages=False)
 			return env
 
 		return _init
@@ -59,7 +59,7 @@ if __name__ == '__main__':
 	batch_size=512
 	)
 
-	TIMESTEPS = 15_000
+	TIMESTEPS = 2_000
 	iters = 0
 	while True:
 		iters += 1

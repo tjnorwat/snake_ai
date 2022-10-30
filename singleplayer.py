@@ -4,9 +4,9 @@ from cv2 import waitKey
 from gameSnake import Snake, Actions
 # from improvedSnakeGame import Snake, Actions
 
-player = Snake(size=6, player=True, time_between_moves=1)
+player = Snake(size=10, player=True, time_between_moves=1, spawn_apple_stages=False)
 player.reset()
-player.render(renderer=100)
+player.render(renderer=70)
 
 while True:
     key_press = waitKey(0)
@@ -24,6 +24,6 @@ while True:
     
     # print('obs len', len(obs))
     # print('rewards ', rewards)
-    
+
     if dones:
         break

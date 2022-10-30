@@ -33,7 +33,7 @@ class Snake(Env):
             [0, 0, 1, 1]
         ]
         # for image
-        self.min_moves = (size ** 2 - 1) ** 2
+        # self.min_moves = (size ** 2 - 1) ** 2
         self.spawn_apple_stages = spawn_apple_stages
         self.max_len = 1
 
@@ -56,7 +56,7 @@ class Snake(Env):
         self.time_between_moves = time_between_moves
         self.timestep = timestep
         self.max_distance = np.linalg.norm(np.array([0,0]) - np.array([size-1, size-1]))
-        # only need left/right/forward because of local direction 
+        # only need left/right/up because of local direction 
         self.action_space = spaces.Discrete(3)
         # snake head x y, snake tail position x y, apple position (x, y), distance to apple (dx, dy), number of moves taken, snake length, distance to tail (dx, dy), is square open left/right/up, direction
         extra_obs_num = 16
@@ -205,19 +205,19 @@ class Snake(Env):
             thickness=2
         )
 
-        cv2.putText(
-            img=img, 
-            text=f'Min Moves: {self.min_moves}', 
-            org=( ((self.size) * renderer), renderer * 3), 
-            fontFace=cv2.FONT_HERSHEY_DUPLEX, 
-            fontScale=.8, 
-            color=(255, 255, 255), 
-            thickness=2
-        )
+        # cv2.putText(
+        #     img=img, 
+        #     text=f'Min Moves: {self.min_moves}', 
+        #     org=( ((self.size) * renderer), renderer * 3), 
+        #     fontFace=cv2.FONT_HERSHEY_DUPLEX, 
+        #     fontScale=.8, 
+        #     color=(255, 255, 255), 
+        #     thickness=2
+        # )
 
         cv2.putText(
             img=img, 
-            text=f'Best len: {self.max_len}', 
+            text=f'Max len: {self.max_len}', 
             org=( ((self.size) * renderer), renderer * 4), 
             fontFace=cv2.FONT_HERSHEY_DUPLEX, 
             fontScale=.8, 
@@ -302,10 +302,10 @@ class Snake(Env):
             # we completed the game 
             if len(self.snake_positions) == self.size ** 2:
 
-                if self.total_moves < self.min_moves:
-                    self.min_moves = self.total_moves
+                # if self.total_moves < self.min_moves:
+                #     self.min_moves = self.total_moves
 
-                reward = 5
+                reward = 2
                 self.done = True
                 info['won'] = True
 

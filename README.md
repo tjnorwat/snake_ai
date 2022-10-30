@@ -25,13 +25,16 @@ Keeping it pretty simple with just
 These are some of the best models that I have come up with, with the best being at the top. All of these are size 6 so far
 
 1. `1666166799` (gamesnake obs, uses local direction)
-2. `1665965302` (can sometimes be the best, uses newsnake)
+2. `1665965302` (can sometimes be better than the one below, uses newsnake)
 3. `1665814474` (newer snake observation)
 4. `1665900538` (newer snake observation with binary open squares)
 5. `1663013938`
 6. `1662864800`
 7. `1662919438`
 8. `1662781705`
+
+for 8x8
+1. `1666906049` (gamesnake, not using apple stages; same timesteps as 6x6; power went out :( )
 
 
 # Having the AI play against other AI
@@ -57,9 +60,13 @@ Different things that i would like to implement
 * auto size renderer
 
 * change to pygame
-* make sure the snake can't go backwards on itself
+* make sure the snake can't go backwards on itself : DONE
 * curriculum learning? / random states 
   * difference between having the food spawn in an NxN, leaving the whole grid open; vs playing in an NxN grid
-* switch to local movement
+  * have a 6x6, 8x8, NxN random chance for apple to spawn in for entire game
+* switch to local movement : DONE 
   * redo which square is open to be local
-* reward function to be based on total num moves? take longer trianing time 
+* reward function to be based on total num moves? take longer trianing time ?
+  * didnt have good results
+
+* put back the different snake coordinates 
