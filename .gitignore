@@ -2,3 +2,5 @@ models
 logs
 __pycache__/
 dones.txt
+rl_lib/snake_V1
+rl_lib/venv

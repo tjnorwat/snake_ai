@@ -56,7 +56,7 @@ class Snake(Env):
         self.time_between_moves = time_between_moves
         self.timestep = timestep
         self.max_distance = np.linalg.norm(np.array([0,0]) - np.array([size-1, size-1]))
-        # only need left/right/forward because of local direction 
+        # only need left/right/up because of local direction 
         self.action_space = spaces.Discrete(3)
         # snake head x y, snake tail position x y, apple position (x, y), distance to apple (dx, dy), number of moves taken, snake length, distance to tail (dx, dy), is square open left/right/up, direction
         extra_obs_num = 16

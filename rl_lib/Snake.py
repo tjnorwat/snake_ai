@@ -12,7 +12,7 @@ class Actions():
 
 
 class Snake(Env):
-    def __init__(self, size=6, player=False, time_between_moves=100, timestep=None, threshold=-1, spawn_apple_stages=False):
+    def __init__(self, env_config=dict(), size=6, player=False, time_between_moves=100, timestep=None, threshold=-1, spawn_apple_stages=False):
 
         super(Snake, self).__init__()
         

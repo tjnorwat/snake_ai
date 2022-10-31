@@ -1,11 +1,16 @@
 import ray
 from ray.rllib.agents.ppo import PPOTrainer
 from ray.rllib.algorithms.ppo import PPO
-
+import time
 from Snake import Snake, Actions
+from ray.tune.logger import TBXLoggerCallback
+from ray import tune
+import ray.rllib.algorithms.ppo as ppo
 
+models_dir = f'models/{int(time.time())}/'
 
-config = {
+config1 = {
+    'env_config': {},
     'framework': 'torch',
     'gamma': .99,
     'lambda': .95,
@@ -23,9 +28,89 @@ config = {
     'batch_mode': 'complete_episodes'
 }
 
-ray.shutdown()
-ray.init()
-algo = PPO(env=Snake, config={'framework': 'torch'})
+config2 = {
+    'env': Snake,
+    'env_config': {},
+    'framework': 'torch',
+    'gamma': .99,
+    'lambda': .95,
+    'lr': 0.0003,
+    'vf_loss_coeff': .5,
+    'clip_param': .2,
+    'sgd_minibatch_size': 4096,
+    'train_batch_size': 32768,
+    'num_workers': 8,
+    'num_gpus': 1,
+    'grad_clip': .5,
+    'model': {
+        'use_lstm': True
+    },
+    'batch_mode': 'complete_episodes'
+}
 
-while True:
-    print(algo.train())
+
+# ray.shutdown()
+# need 1 more cpus to workers 
+ray.init(
+    num_cpus=9,
+    include_dashboard=True
+)
+
+# print(ray.get_webui_url())
+# algo = PPO(env=Snake, config={'env_config': {}, 'framework': 'torch'})
+# algo = PPO(env=Snake, config=config, callbacks=TBXLoggerCallback())
+
+# tune.Tuner().restore
+
+
+
+
+
+# tune.run('PPO', config={
+#     'env': Snake,
+#     'framework': 'torch',
+#     'num_workers': 8,
+#     'num_envs_per_worker': 12,
+#     'num_gpus': 1,
+# }, local_dir='snake_V1',
+# checkpoint_freq=1)
+
+
+tune.run('PPO', config={
+    'env': Snake,
+    'framework': 'torch',
+    'gamma': .99,
+    'lambda': .95,
+    'lr': 0.0003,
+    'vf_loss_coeff': .5,
+    'clip_param': .2,
+    'sgd_minibatch_size': 4096,
+    'train_batch_size': 32768,
+    'num_workers': 8,
+    'num_envs_per_worker': 12,
+    'num_gpus': 1,
+    'grad_clip': .5,
+    'batch_mode': 'complete_episodes',
+    'horizon': 15_000
+}, local_dir='snake_V1',
+checkpoint_freq=1,
+verbose=0
+)
+
+
+# algo = ppo.PPO(
+#     env=Snake,
+#     config=config1
+# )
+
+# algo.train()
+# algo.save(models_dir)
+
+
+
+# tune.run
+# algo = ppo.PPO(env=MyEnv, config={"env_config": {}, })
+
+# while True:
+#     print(algo.train())
+#     algo.save(models_dir)
